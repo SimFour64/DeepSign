@@ -7,10 +7,26 @@ wheel
 # python and debugging
 ipdb
 ipykernel
+pytest
+pylint
+
+# data science
+numpy<2.0.0
+pandas==2.2.3
 
 # data viz
 matplotlib
 seaborn
+
+# Machine learning
+scikit-learn==1.6.1
+
+# Deeplearning
+tensorflow==2.16.2    # For both Intel and Apple silicon
+keras==3.8.0
+
+# Google cloud storage
+google-cloud-storage
 
 # jupyter
 jupyter-contrib-core==0.4.0
@@ -29,3 +45,6 @@ jupyterlab_server==2.16.1
 notebook==6.4.12
 notebook_shim==0.2.0
 traitlets==5.5.0
+
+# OpenCV
+opencv-python
