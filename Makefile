@@ -4,6 +4,8 @@
 
 install_requirements:
 	@pip install -r requirements.txt
+install_requirements_dev:
+	@pip install -r requirements_dev.txt
 
 install:
 	@pip install . -U
