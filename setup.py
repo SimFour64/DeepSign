@@ -15,9 +15,9 @@ if os.path.isfile('requirements_dev.txt'):
     requirements.extend([x.strip() for x in content if 'git+' not in x])
 
 
-setup(name='packagename',
+setup(name='deepsign',
       version="0.0.1",
-      description="Project Description",
+      description="Project deepsign",
       packages=find_packages(),
       install_requires=requirements,
       test_suite='tests',
