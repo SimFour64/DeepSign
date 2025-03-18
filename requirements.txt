@@ -14,6 +14,9 @@ pandas==2.2.3
 # Uncomment if you use Google Cloud Storage
 # google-cloud-storage
 
+# OpenCV
+opencv-python
+
 # API
 fastapi
 uvicorn
