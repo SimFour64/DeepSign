@@ -12,7 +12,7 @@ FROM python:3.10
 # FROM tensorflow/tensorflow:2.16.1
 
 # Copy everything we need into the image
-COPY packagename packagename
+COPY deepsign deepsign
 COPY api api
 COPY requirements.txt requirements.txt
 COPY setup.py setup.py
