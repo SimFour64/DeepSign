@@ -48,3 +48,8 @@ traitlets==5.5.0
 
 # OpenCV
 opencv-python
+
+# API
+fastapi
+uvicorn
+python-multipart
