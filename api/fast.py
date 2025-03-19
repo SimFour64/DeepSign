@@ -58,17 +58,17 @@ def get_predict_preprod(input_one: float,input_two: float):
     }
 
 @app.post("/upload_image_preprod")
-async def receive_image_preprod(img):
+async def receive_image_preprod(img:UploadFile=File(...)):
     """
     Returning prediction from an image of american sign language
     Input: image loaded from website application
     Output : prediction from DeepSign computer vision model
     """
     # Receiving the image and decoding it
-    # contents = await img.read()  # Image is binarized via .read() in the frontend
+    contents = await img.read()  # Image is binarized via .read() in the frontend
 
     # Transforming to np.ndarray to be readable by opencv
-    nparr = np.fromstring(img, np.uint8)
+    nparr = np.fromstring(contents, np.uint8)
     cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     # Response for preprod
