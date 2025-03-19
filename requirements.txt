@@ -20,3 +20,4 @@ opencv-python
 # API
 fastapi
 uvicorn
+python-multipart
