@@ -21,7 +21,7 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {
-        'message': "Hi, The API is running!"
+        'message': "Hi, The API is running! V 0.2"
     }
 
 # Endpoint for https://your-domain.com/predict?input_one=154&input_two=199
