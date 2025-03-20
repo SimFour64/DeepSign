@@ -32,6 +32,7 @@ data/
 models/
 *.joblib
 *.h5
+*.keras
 
 # Any pickle files
 *.pickle
