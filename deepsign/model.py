@@ -8,10 +8,12 @@ import datetime
 import os
 import shutil
 import random
+from params import TRAIN_DIR, TEST_DIR
 
-project_dir= '/Users/veronika/code/SimFour64/DeepSign/raw_data'
 classes_to_select = ['hello', 'please', '2', 'c', 'NULL']
-dataset_dir = 'raw_data/sorted_signs'
+
+#project_dir= '/Users/veronika/code/SimFour64/DeepSign/raw_data'
+#dataset_dir = 'raw_data/sorted_signs'
 #test_dataset = 'test_data'
 
 
@@ -103,7 +105,7 @@ def train_model(model, epochs=5,
                 img_size=(128,128), batch_size=32):
 
     train_dataset = image_dataset_from_directory(
-        os.path.join('..','raw_data','sorted_signs'),
+        TRAIN_DIR,
         image_size=img_size,
         batch_size=batch_size,
         color_mode='rgb',
@@ -115,7 +117,7 @@ def train_model(model, epochs=5,
     )
 
     validation_dataset = image_dataset_from_directory(
-        os.path.join('..','raw_data','sorted_signs'),
+        TRAIN_DIR,
         image_size=img_size,
         batch_size=batch_size,
         color_mode='rgb',
@@ -150,9 +152,17 @@ def train_model(model, epochs=5,
 
 
 # Évaluation du modèle
-def evaluate_model(model, validation_dataset):
-
-    loss, accuracy = model.evaluate(validation_dataset)
+def evaluate_model(model, img_size=(128, 128), batch_size=32):
+    test_dataset = image_dataset_from_directory(
+        TEST_DIR,
+        image_size=img_size,
+        batch_size=batch_size,
+        color_mode='rgb',
+        label_mode='categorical',
+        seed=123,
+        class_names=classes_to_select
+    )
+    loss, accuracy = model.evaluate(test_dataset)
     print(f"Loss: {loss}, Accuracy: {accuracy}")
     return loss, accuracy
 
@@ -197,7 +207,10 @@ if __name__== "__main__":
     compile_model(model)
     history, model = train_model(model, epochs=5)
     #evaluate_model(model, test_dataset)
+
     plot_history(history)
-    image_path = "path_to_image.jpg"
-    predicted_class = predict_image(model, image_path)
-    print(f"Predicted class: {classes_to_select[predicted_class[0]]}")
+    loss, accuracy = evaluate_model(model)
+
+    # image_path = "path_to_image.jpg"
+    # predicted_class = predict_image(model, image_path)
+    # print(f"Predicted class: {classes_to_select[predicted_class[0]]}")
