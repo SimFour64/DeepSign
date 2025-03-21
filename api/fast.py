@@ -6,6 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import Response
 import cv2
 import numpy as np
+import os
+import tensorflow as tf
+from params import MODEL_DIR
+
+
 
 app = FastAPI()
 
@@ -17,12 +22,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-# Endpoint for https://your-domain.com/
-@app.get("/")
-def root():
-    return {
-        'message': "Hi, The API is running! V 0.2"
-    }
+
+
 
 # Endpoint for https://your-domain.com/predict?input_one=154&input_two=199
 @app.get("/predict")
@@ -84,3 +85,52 @@ async def receive_image_preprod(img:UploadFile=File(...)):
     # Loading production model
     # Predicting with model
     # return pred
+
+# Répertoire des modèles
+MODEL_PATH = os.path.join(MODEL_DIR, '2025-03-19 16:56:39.228975_final.keras')
+#MODEL_PATH = os.path.join('/Users/veronika/code/SimFour64/DeepSign/models/2025-03-19 16:56:39.228975_final.keras')
+
+# Charger le modèle au démarrage de l'API
+model = tf.keras.models.load_model(MODEL_PATH)
+
+# Classes du modèle
+class_names = ['hello', 'please', '2', 'c', 'NULL']
+
+# Endpoint de test
+@app.get("/")
+def root():
+    return {"message": "Hi, The API is running! V 0.3"}
+
+# Endpoint de prédiction d'une image
+@app.post("/get_image_prediction")
+async def get_prediction(img: UploadFile = File(...)):
+    """
+    Reçoit une image en entrée et retourne la prédiction du modèle.
+    """
+
+    # Lire l'image
+    contents = await img.read()
+    nparr = np.fromstring(contents, np.uint8)
+    cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    # Vérification si l'image est bien chargée
+    if cv2_img is None:
+        return {"error": "Impossible de charger l'image"}
+
+    # Prétraitement de l'image
+    img_cropped = cv2_img[200:500,200:500]
+    img_resized = cv2.resize(img_cropped, (128, 128))  # Redimensionner à la taille du modèle
+    #img_array = img_resized / 255.0  # Normalisation
+    img_array = np.expand_dims(img_resized, axis=0)  # Ajouter une dimension batch
+
+
+    # Prédiction avec le modèle
+    prediction = model.predict(img_array)
+    predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
+    predicted_label = class_names[predicted_class]  # Obtenir le nom de la classe
+
+    return {
+        "filename": img.filename,
+        "prediction": predicted_label,
+        "probabilities": prediction.tolist()
+    }
