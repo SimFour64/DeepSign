@@ -205,7 +205,7 @@ if __name__== "__main__":
 
     model = initialize_model()
     compile_model(model)
-    history, model = train_model(model, epochs=5)
+    history, model = train_model(model, epochs=20)
     #evaluate_model(model, test_dataset)
 
     plot_history(history)
