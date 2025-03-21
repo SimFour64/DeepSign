@@ -29,6 +29,7 @@ COPY deepsign deepsign
 COPY api api
 COPY models models
 COPY setup.py setup.py
+COPY params.py params.py
 # COPY credentials.json credentials.json
 
 # Install package

@@ -9,6 +9,7 @@ import numpy as np
 import os
 import tensorflow as tf
 from params import MODEL_DIR
+import keras
 
 
 
@@ -87,7 +88,7 @@ async def receive_image_preprod(img:UploadFile=File(...)):
     # return pred
 
 # Répertoire des modèles
-MODEL_PATH = os.path.join(MODEL_DIR, '2025-03-19 16:56:39.228975_final.keras')
+MODEL_PATH = os.path.join(MODEL_DIR, '2025-03-21 15:56:45.638408.keras')
 #MODEL_PATH = os.path.join('/Users/veronika/code/SimFour64/DeepSign/models/2025-03-19 16:56:39.228975_final.keras')
 
 # Charger le modèle au démarrage de l'API

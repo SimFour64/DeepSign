@@ -85,3 +85,6 @@ def Folderize_images_with_train_test_split(test_size=0.2):
 
     print("✅ Folderization et séparation train/test terminées !")
     return None
+
+if __name__ == '__main__':
+    Folderize_images_with_train_test_split()
