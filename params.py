@@ -7,6 +7,7 @@ RAW_DATA_DIR = os.path.join(PROJECT_FOLDER, 'raw_data')
 TRAIN_DIR = os.path.join(RAW_DATA_DIR, 'sorted_signs', 'train')
 TEST_DIR = os.path.join(RAW_DATA_DIR, 'sorted_signs', 'test')
 
+
 #modèles
 MODEL_DIR = os.path.join(PROJECT_FOLDER, 'models')
 

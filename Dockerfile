@@ -24,6 +24,12 @@ COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Installer google-cloud (utilisé pour GCP)
+#RUN pip install --no-cache-dir google-cloud
+
+COPY secrets/deepsign-454016-6c19001d719b.json /app/key.json
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/key.json"
+
 # Copy everything we need into the image
 COPY deepsign deepsign
 COPY api api

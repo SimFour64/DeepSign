@@ -7,13 +7,13 @@ pandas==2.2.3
 
 # Install the correct TensorFlow version
 # Uncomment if you use TensorFlow
-tensorflow==2.16.2    # For both Intel and Apple silicon
-keras==3.8.0
+tensorflow==2.17.1    # For both Intel and Apple silicon
+keras==3.5.0
 
 # Google Cloud
 # Uncomment if you use Google Cloud Storage
-# google-cloud-storage
-
+google-cloud-storage
+google-cloud
 # OpenCV
 opencv-python
 
