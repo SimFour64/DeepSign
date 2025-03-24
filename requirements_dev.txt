@@ -26,6 +26,7 @@ tensorflow==2.16.2    # For both Intel and Apple silicon
 keras==3.8.0
 
 # Google cloud storage
+google-cloud
 google-cloud-storage
 
 # jupyter

@@ -9,9 +9,9 @@ import numpy as np
 import os
 import tensorflow as tf
 from params import MODEL_DIR
-import keras
-
-
+from google.cloud import storage
+import io
+import tempfile
 
 app = FastAPI()
 
@@ -88,7 +88,7 @@ async def receive_image_preprod(img:UploadFile=File(...)):
     # return pred
 
 # Répertoire des modèles
-MODEL_PATH = os.path.join(MODEL_DIR, '2025-03-21 15:56:45.638408.keras')
+MODEL_PATH = os.path.join(MODEL_DIR, 'model5_5classes_accuracy_0.8993_Params_2781509.keras')
 #MODEL_PATH = os.path.join('/Users/veronika/code/SimFour64/DeepSign/models/2025-03-19 16:56:39.228975_final.keras')
 
 # Charger le modèle au démarrage de l'API
@@ -96,11 +96,12 @@ model = tf.keras.models.load_model(MODEL_PATH)
 
 # Classes du modèle
 class_names = ['hello', 'please', '2', 'c', 'NULL']
+class_names_full = ['0','1','2','3','4','5','6','7','8','9','NULL','a','b','bye','c','d','e','good','good morning','hello','little bit','no','pardon','please','project','whats up','yes']
 
 # Endpoint de test
 @app.get("/")
 def root():
-    return {"message": "Hi, The API is running! V 0.3"}
+    return {"message": "Hi, The API is running! V 0.4"}
 
 # Endpoint de prédiction d'une image
 @app.post("/get_image_prediction")
@@ -129,6 +130,125 @@ async def get_prediction(img: UploadFile = File(...)):
     prediction = model.predict(img_array)
     predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
     predicted_label = class_names[predicted_class]  # Obtenir le nom de la classe
+
+    return {
+        "filename": img.filename,
+        "prediction": predicted_label,
+        "probabilities": prediction.tolist()
+    }
+
+
+    ###################################
+    #  MODELS FROM GCP API #
+    ###################################
+storage_client = storage.Client()
+BUCKET_NAME = "deepsign_buckets"
+MODEL_DIR = "models"
+
+# Liste les modèles disponibles dans GCP Storage
+def list_models():
+    bucket = storage_client.get_bucket(BUCKET_NAME)
+    blobs = bucket.list_blobs(prefix=MODEL_DIR)
+    models = [blob.name for blob in blobs]
+    return models
+
+# Endpoint pour lister les modèles disponibles
+@app.get("/models")
+def get_models():
+    models = list_models()
+    return {"models": models}
+
+
+def load_model_from_gcs(model_name: str):
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(BUCKET_NAME)
+    blob = bucket.blob(model_name)
+
+    model_bytes = blob.download_as_bytes()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.keras') as tmp_file:
+        tmp_file.write(model_bytes)
+        tmp_file_path = tmp_file.name
+
+    model = tf.keras.models.load_model(tmp_file_path)
+
+    # Supprimer le fichier temporaire après le chargement
+    # os.remove(tmp_file_path)
+
+    return model
+
+
+# Endpoint pour faire une prédiction avec un modèle sélectionné via GCP 5 CLASSES
+@app.post("/get_image_prediction_from_gcp_model_5")
+async def predict(model_name: str, img: UploadFile = File(...)):
+    """
+    Reçoit une image et un model en entrée et retourne la prédiction du modèle.
+    """
+    if not model_name:
+        return {"error": "Model name is required"}
+
+    # Charger le modèle
+    model = load_model_from_gcs(model_name)
+
+    # Lire l'image
+    contents = await img.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    # Vérification si l'image est bien chargée
+    if cv2_img is None:
+        return {"error": "Impossible de charger l'image"}
+
+    # Prétraitement de l'image
+    img_cropped = cv2_img[200:500,200:500]
+    img_resized = cv2.resize(img_cropped, (128, 128))  # Redimensionner à la taille du modèle
+    #img_array = img_resized / 255.0  # Normalisation
+    img_array = np.expand_dims(img_resized, axis=0)  # Ajouter une dimension batch
+
+
+    # Prédiction avec le modèle
+    prediction = model.predict(img_array)
+    predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
+    predicted_label = class_names[predicted_class]  # Obtenir le nom de la classe
+
+    return {
+        "filename": img.filename,
+        "prediction": predicted_label,
+        "probabilities": prediction.tolist()
+    }
+
+# Endpoint pour faire une prédiction avec un modèle sélectionné via GCP FULL CLASSES
+@app.post("/get_image_prediction_from_gcp_model_full")
+async def predict(model_name: str, img: UploadFile = File(...)):
+    """
+    Reçoit une image et un model en entrée et retourne la prédiction du modèle.
+    """
+    if not model_name:
+        return {"error": "Model name is required"}
+
+    # Charger le modèle
+    model = load_model_from_gcs(model_name)
+
+    # Lire l'image
+    contents = await img.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    # Vérification si l'image est bien chargée
+    if cv2_img is None:
+        return {"error": "Impossible de charger l'image"}
+
+    # Prétraitement de l'image
+    img_cropped = cv2_img[200:500,200:500]
+    img_resized = cv2.resize(img_cropped, (128, 128))  # Redimensionner à la taille du modèle
+    #img_array = img_resized / 255.0  # Normalisation
+    img_array = np.expand_dims(img_resized, axis=0)  # Ajouter une dimension batch
+
+
+    # Prédiction avec le modèle
+    prediction = model.predict(img_array)
+    predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
+    predicted_label = class_names_full[predicted_class]  # Obtenir le nom de la classe
 
     return {
         "filename": img.filename,
