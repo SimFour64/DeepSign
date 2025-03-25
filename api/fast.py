@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import os
 import tensorflow as tf
-from params import MODEL_DIR
+from params import MODEL_DIR, X1, X2, Y1, Y2
 from google.cloud import storage
 import io
 import tempfile
@@ -101,7 +101,7 @@ class_names_full = ['0','1','2','3','4','5','6','7','8','9','NULL','a','b','bye'
 # Endpoint de test
 @app.get("/")
 def root():
-    return {"message": "Hi, The API is running! V 0.4"}
+    return {"message": "Hi, The API is running! V 0.5"}
 
 # Endpoint de prédiction d'une image
 @app.post("/get_image_prediction")
@@ -120,7 +120,7 @@ async def get_prediction(img: UploadFile = File(...)):
         return {"error": "Impossible de charger l'image"}
 
     # Prétraitement de l'image
-    img_cropped = cv2_img[200:500,200:500]
+    img_cropped = cv2_img[Y1:Y2,X1:X2]
     img_resized = cv2.resize(img_cropped, (128, 128))  # Redimensionner à la taille du modèle
     #img_array = img_resized / 255.0  # Normalisation
     img_array = np.expand_dims(img_resized, axis=0)  # Ajouter une dimension batch
@@ -200,7 +200,7 @@ async def predict(model_name: str, img: UploadFile = File(...)):
         return {"error": "Impossible de charger l'image"}
 
     # Prétraitement de l'image
-    img_cropped = cv2_img[200:500,200:500]
+    img_cropped = cv2_img[Y1:Y2,X1:X2]
     img_resized = cv2.resize(img_cropped, (128, 128))  # Redimensionner à la taille du modèle
     #img_array = img_resized / 255.0  # Normalisation
     img_array = np.expand_dims(img_resized, axis=0)  # Ajouter une dimension batch
@@ -239,7 +239,7 @@ async def predict(model_name: str, img: UploadFile = File(...)):
         return {"error": "Impossible de charger l'image"}
 
     # Prétraitement de l'image
-    img_cropped = cv2_img[200:500,200:500]
+    img_cropped = cv2_img[Y1:Y2,X1:X2]
     img_resized = cv2.resize(img_cropped, (128, 128))  # Redimensionner à la taille du modèle
     #img_array = img_resized / 255.0  # Normalisation
     img_array = np.expand_dims(img_resized, axis=0)  # Ajouter une dimension batch
