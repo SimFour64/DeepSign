@@ -28,6 +28,9 @@ raw_data/
 # Add files you want to include in the git repo using `git add -f file_name`
 data/
 
+#SECRETS
+secrets/
+*.json
 # Saved models
 models/
 *.joblib
