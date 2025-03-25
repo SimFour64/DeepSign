@@ -22,9 +22,9 @@ seaborn
 scikit-learn==1.6.1
 
 # Deeplearning
-tensorflow==2.16.2    # For both Intel and Apple silicon
-keras==3.8.0
 keras_cv
+tensorflow==2.17.1    # For both Intel and Apple silicon
+keras==3.5.0
 
 # Google cloud storage
 google-cloud
