@@ -119,12 +119,14 @@ async def get_prediction(img: UploadFile = File(...)):
     if cv2_img is None:
         return {"error": "Impossible de charger l'image"}
 
-    # Prétraitement de l'image
-    img_cropped = cv2_img[Y1:Y2,X1:X2]
-    img_resized = cv2.resize(img_cropped, (128, 128))  # Redimensionner à la taille du modèle
-    #img_array = img_resized / 255.0  # Normalisation
-    img_array = np.expand_dims(img_resized, axis=0)  # Ajouter une dimension batch
+    # Prétraitement de l'image en fonction des cas
+    # Si l'image n'est pas carrée (vient de la webcam ordi): on crop sur le box OpenCV
+    if cv2_img.shape[0] != cv2_img.shape[1]:
+        cv2_img = cv2_img[Y1:Y2,X1:X2]
 
+    # On resize dans tous les cas (même si déjà 128*128)
+    cv2_img = cv2.resize(cv2_img, (128, 128))
+    img_array = np.expand_dims(cv2_img, axis=0)  # Ajouter une dimension batch
 
     # Prédiction avec le modèle
     prediction = model.predict(img_array)
@@ -138,9 +140,9 @@ async def get_prediction(img: UploadFile = File(...)):
     }
 
 
-    ###################################
-    #  MODELS FROM GCP API #
-    ###################################
+###################################
+#  MODELS FROM GCP API #
+###################################
 storage_client = storage.Client()
 BUCKET_NAME = "deepsign_buckets"
 MODEL_DIR = "models"
