@@ -15,3 +15,9 @@ MODEL_DIR = os.path.join(PROJECT_FOLDER, 'models')
 print(f"PROJECT_FOLDER: {PROJECT_FOLDER}")
 print(f"TRAIN_DIR: {TRAIN_DIR}")
 print(f"TEST_DIR: {TEST_DIR}")
+
+# Define vertices for the OpenCVbox
+X1 = 100
+X2 = 600
+Y1 = 25
+Y2 = 525
