@@ -114,6 +114,7 @@ async def get_prediction(img: UploadFile = File(...)):
     contents = await img.read()
     nparr = np.fromstring(contents, np.uint8)
     cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2RGB)
 
     # Vérification si l'image est bien chargée
     if cv2_img is None:
@@ -196,6 +197,7 @@ async def predict(model_name: str, img: UploadFile = File(...)):
     contents = await img.read()
     nparr = np.frombuffer(contents, np.uint8)
     cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2RGB)
 
     # Vérification si l'image est bien chargée
     if cv2_img is None:
@@ -235,6 +237,7 @@ async def predict(model_name: str, img: UploadFile = File(...)):
     contents = await img.read()
     nparr = np.frombuffer(contents, np.uint8)
     cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2RGB)
 
     # Vérification si l'image est bien chargée
     if cv2_img is None:
