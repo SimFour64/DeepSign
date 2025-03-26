@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import os
 import tensorflow as tf
-from params import MODEL_DIR, X1, X2, Y1, Y2
+from params import MODEL_DIR,BUCKET_NAME, X1, X2, Y1, Y2, PROD_MODEL,API_VERSION, MODEL_PATH, CLASS_NAME_5, CLASS_NAME_FULL
 from google.cloud import storage
 import io
 import tempfile
@@ -23,85 +23,55 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# Charger le modèle au démarrage de l'API
+model = tf.keras.models.load_model(MODEL_PATH)
 
-
-
-# Endpoint for https://your-domain.com/predict?input_one=154&input_two=199
-@app.get("/predict")
-def get_predict(input_one: float,
-            input_two: float):
-    # TODO: Do something with your input
-    # i.e. feed it to your model.predict, and return the output
-    # For a dummy version, just return the sum of the two inputs and the original inputs
-    prediction = float(input_one) + float(input_two)
-    return {
-        'prediction': prediction,
-        'inputs': {
-            'input_one': input_one,
-            'input_two': input_two
-        }
-    }
-
-@app.get("/preprod")
-def root_preprod():
-    return {"message": "Hello from preprod fake API"}
-
-@app.get("/predict_preprod")
-def get_predict_preprod(input_one: float,input_two: float):
-    # i.e. feed it to your model.predict, and return the output
-    # For a dummy version, just return the sum of the two inputs and the original inputs
-    prediction = float(input_one) + float(input_two)
-    return {
-        'prediction': prediction,
-        'inputs': {
-            'input_one': input_one,
-            'input_two': input_two
-        }
-    }
-
-@app.post("/upload_image_preprod")
-async def receive_image_preprod(img:UploadFile=File(...)):
+##############################
+# ENDPOINT PROD
+##############################
+# Endpoint de prédiction d'une image de prod
+@app.post("/get_image_prediction_prod")
+async def get_prediction(img: UploadFile = File(...)):
     """
-    Returning prediction from an image of american sign language
-    Input: image loaded from website application
-    Output : prediction from DeepSign computer vision model
+    Reçoit une image en entrée et retourne la prédiction du modèle.
     """
-    # Receiving the image and decoding it
-    contents = await img.read()  # Image is binarized via .read() in the frontend
 
-    # Transforming to np.ndarray to be readable by opencv
+    # Lire l'image
+    contents = await img.read()
     nparr = np.fromstring(contents, np.uint8)
     cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2RGB)
 
-    # Response for preprod
+    # Vérification si l'image est bien chargée
+    if cv2_img is None:
+        return {"error": "Impossible de charger l'image"}
+
+    # Prétraitement de l'image en fonction des cas
+    # Si l'image n'est pas carrée (vient de la webcam ordi): on crop sur le box OpenCV
+    if cv2_img.shape[0] != cv2_img.shape[1]:
+        cv2_img = cv2_img[Y1:Y2,X1:X2]
+
+    # On resize dans tous les cas (même si déjà 128*128)
+    cv2_img = cv2.resize(cv2_img, (128, 128))
+    img_array = np.expand_dims(cv2_img, axis=0)  # Ajouter une dimension batch
+
+    # Prédiction avec le modèle
+    prediction = model.predict(img_array)
+    predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
+    predicted_label = CLASS_NAME_FULL[predicted_class]  # Obtenir le nom de la classe
+
     return {
-        "filename": f"{img.filename}_processed",
-        "image_size": cv2_img.shape[:-1]
+        "filename": img.filename,
+        "prediction": predicted_label,
+        "probabilities": prediction.tolist(),
+        "model":PROD_MODEL
     }
+
+
 
     ###################################
     #  OPENCV TREATMENT & PREDICTION  #
     ###################################
-    # OpenCV treatment : extracting zone of interest
-    # Loading production model
-    # Predicting with model
-    # return pred
-
-# Répertoire des modèles
-MODEL_PATH = os.path.join(MODEL_DIR, 'model5_5classes_accuracy_0.8993_Params_2781509.keras')
-#MODEL_PATH = os.path.join('/Users/veronika/code/SimFour64/DeepSign/models/2025-03-19 16:56:39.228975_final.keras')
-
-# Charger le modèle au démarrage de l'API
-model = tf.keras.models.load_model(MODEL_PATH)
-
-# Classes du modèle
-class_names = ['hello', 'please', '2', 'c', 'NULL']
-class_names_full = ['0','1','2','3','4','5','6','7','8','9','NULL','a','b','bye','c','d','e','good','good morning','hello','little bit','no','pardon','please','project','whats up','yes']
-
-# Endpoint de test
-@app.get("/")
-def root():
-    return {"message": "Hi, The API is running! V 0.5"}
 
 # Endpoint de prédiction d'une image
 @app.post("/get_image_prediction")
@@ -132,12 +102,13 @@ async def get_prediction(img: UploadFile = File(...)):
     # Prédiction avec le modèle
     prediction = model.predict(img_array)
     predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
-    predicted_label = class_names[predicted_class]  # Obtenir le nom de la classe
+    predicted_label = CLASS_NAME_FULL[predicted_class]  # Obtenir le nom de la classe
 
     return {
         "filename": img.filename,
         "prediction": predicted_label,
-        "probabilities": prediction.tolist()
+        "probabilities": prediction.tolist(),
+        "model":PROD_MODEL
     }
 
 
@@ -145,8 +116,6 @@ async def get_prediction(img: UploadFile = File(...)):
 #  MODELS FROM GCP API #
 ###################################
 storage_client = storage.Client()
-BUCKET_NAME = "deepsign_buckets"
-MODEL_DIR = "models"
 
 # Liste les modèles disponibles dans GCP Storage
 def list_models():
@@ -213,7 +182,7 @@ async def predict(model_name: str, img: UploadFile = File(...)):
     # Prédiction avec le modèle
     prediction = model.predict(img_array)
     predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
-    predicted_label = class_names[predicted_class]  # Obtenir le nom de la classe
+    predicted_label = CLASS_NAME_5[predicted_class]  # Obtenir le nom de la classe
 
     return {
         "filename": img.filename,
@@ -253,10 +222,61 @@ async def predict(model_name: str, img: UploadFile = File(...)):
     # Prédiction avec le modèle
     prediction = model.predict(img_array)
     predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
-    predicted_label = class_names_full[predicted_class]  # Obtenir le nom de la classe
+    predicted_label = CLASS_NAME_FULL[predicted_class]  # Obtenir le nom de la classe
 
     return {
         "filename": img.filename,
         "prediction": predicted_label,
         "probabilities": prediction.tolist()
+    }
+
+
+##############################
+# ENDPOINT TEST
+##############################
+# Endpoint Root
+@app.get("/")
+def root():
+    return {"message": "Hi, The API is running!",
+            "version": API_VERSION
+            }
+
+# Endpoint Hello
+@app.get("/preprod")
+def root_preprod():
+    return {"message": "Hello from preprod fake API"}
+
+# Endpoint X+Y = ?
+@app.get("/predict_preprod")
+def get_predict_preprod(input_one: float,input_two: float):
+    # i.e. feed it to your model.predict, and return the output
+    # For a dummy version, just return the sum of the two inputs and the original inputs
+    prediction = float(input_one) + float(input_two)
+    return {
+        'prediction': prediction,
+        'inputs': {
+            'input_one': input_one,
+            'input_two': input_two
+        }
+    }
+
+# Endpoint Returning prediction from an image
+@app.post("/upload_image_preprod")
+async def receive_image_preprod(img:UploadFile=File(...)):
+    """
+    Returning prediction from an image of american sign language
+    Input: image loaded from website application
+    Output : prediction from DeepSign computer vision model
+    """
+    # Receiving the image and decoding it
+    contents = await img.read()  # Image is binarized via .read() in the frontend
+
+    # Transforming to np.ndarray to be readable by opencv
+    nparr = np.fromstring(contents, np.uint8)
+    cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2RGB)
+    # Response for preprod
+    return {
+        "filename": f"{img.filename}_processed",
+        "image_size": cv2_img.shape[:-1]
     }

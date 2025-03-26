@@ -22,6 +22,7 @@ seaborn
 scikit-learn==1.6.1
 
 # Deeplearning
+keras_cv
 tensorflow==2.17.1    # For both Intel and Apple silicon
 keras==3.5.0
 keras_cv
