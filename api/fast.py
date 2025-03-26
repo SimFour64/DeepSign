@@ -88,7 +88,7 @@ async def receive_image_preprod(img:UploadFile=File(...)):
     # return pred
 
 # Répertoire des modèles
-MODEL_PATH = os.path.join(MODEL_DIR, 'model5_5classes_accuracy_0.8993_Params_2781509.keras')
+MODEL_PATH = os.path.join(MODEL_DIR, '2025-03-25 08_48_55.752271.keras')
 #MODEL_PATH = os.path.join('/Users/veronika/code/SimFour64/DeepSign/models/2025-03-19 16:56:39.228975_final.keras')
 
 # Charger le modèle au démarrage de l'API
@@ -132,7 +132,7 @@ async def get_prediction(img: UploadFile = File(...)):
     # Prédiction avec le modèle
     prediction = model.predict(img_array)
     predicted_class = np.argmax(prediction)  # Obtenir l'indice de la classe prédite
-    predicted_label = class_names[predicted_class]  # Obtenir le nom de la classe
+    predicted_label = class_names_full[predicted_class]  # Obtenir le nom de la classe
 
     return {
         "filename": img.filename,

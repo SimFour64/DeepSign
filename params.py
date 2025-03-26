@@ -13,7 +13,7 @@ MODEL_DIR = os.path.join(PROJECT_FOLDER, 'models')
 
 
 #PARAMS PROD
-PROD_MODEL = 'TO DEFINE'
+PROD_MODEL = '2025-03-25 08_48_55.752271.keras'
 CLASS_NAME_5 = ['hello', 'please', '2', 'c', 'NULL']
 CLASS_NAME_FULL = ['0','1','2','3','4','5','6','7','8','9','NULL','a','b','bye','c','d','e','good','good morning','hello','little bit','no','pardon','please','project','whats up','yes']
 
